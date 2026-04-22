@@ -41,13 +41,31 @@ app.use('/api/notifications', notificationRoutes); // ← NEW
 app.get('/', (req, res) => res.send('AI Task API is running!'));
 app.get('/health', (req, res) => res.status(200).json({ ok: true }));
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
+const PORT = process.env.PORT || 5000;
+let cronStarted = false;
+
+async function connectMongoWithRetry() {
+  if (!process.env.MONGO_URI) {
+    console.error('MONGO_URI is not set. Database connection skipped.');
+    return;
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('Connected to MongoDB Atlas');
-    startNotificationCron(); // ← Start cron after DB connects
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(`Server running on port ${process.env.PORT || 5000}`);
-    });
-  })
-  .catch((err) => console.error('MongoDB connection error:', err));
+
+    if (!cronStarted) {
+      startNotificationCron();
+      cronStarted = true;
+    }
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    console.log('Retrying MongoDB connection in 10 seconds...');
+    setTimeout(connectMongoWithRetry, 10000);
+  }
+}
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  connectMongoWithRetry();
+});
