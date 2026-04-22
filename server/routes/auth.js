@@ -5,6 +5,16 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const User = require('../models/User');
 
+function getFrontendUrl() {
+  if (process.env.FRONTEND_URL) return process.env.FRONTEND_URL;
+  if (process.env.CLIENT_URL) return process.env.CLIENT_URL;
+  if (process.env.CLIENT_URLS) {
+    const firstUrl = process.env.CLIENT_URLS.split(',').map((url) => url.trim()).find(Boolean);
+    if (firstUrl) return firstUrl;
+  }
+  return 'http://localhost:3000';
+}
+
 // Helper: generate JWT
 function generateToken(user) {
   return jwt.sign(
@@ -77,8 +87,9 @@ router.get(
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   (req, res) => {
     const token = generateToken(req.user);
+    const frontendUrl = getFrontendUrl();
     // Send token to frontend via URL param (React will grab it)
-    res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${token}`);
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
   }
 );
 
