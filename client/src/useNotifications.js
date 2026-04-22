@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = 'http://localhost:5000/api';
-const VAPID_PUBLIC_KEY = 'BNa5kcErqL5xnvR0rJfLNyyikzAebvpBhKzeZ73PKuRGgLm9ZBNQ06swigH3s2vrEfa8LJB3B-MR5Jh7A_muXLM'; // from your .env
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const VAPID_PUBLIC_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY;
 
 // Convert VAPID public key to the format browsers expect
 function urlBase64ToUint8Array(base64String) {
@@ -30,6 +30,11 @@ export function useNotifications() { // ← no token parameter
 
 const subscribe = async (silent = false) => {
   try {
+    if (!VAPID_PUBLIC_KEY) {
+      if (!silent) alert('Push notifications are not configured.');
+      return;
+    }
+
     const reg = await navigator.serviceWorker.register('/sw.js');
     const perm = await Notification.requestPermission();
 

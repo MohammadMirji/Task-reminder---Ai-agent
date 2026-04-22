@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNotifications } from "./useNotifications";
 
-const API = "http://localhost:5000/api";
+const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 // ─── Axios helper: attach JWT to every request ────────────────────────────────
 const authAxios = () => {
