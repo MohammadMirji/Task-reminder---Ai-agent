@@ -4,12 +4,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const User = require('../models/User');
+const { normalizeOrigin } = require('../utils/env');
 
 function getFrontendUrl() {
-  if (process.env.FRONTEND_URL) return process.env.FRONTEND_URL;
-  if (process.env.CLIENT_URL) return process.env.CLIENT_URL;
+  if (process.env.FRONTEND_URL) return normalizeOrigin(process.env.FRONTEND_URL);
+  if (process.env.CLIENT_URL) return normalizeOrigin(process.env.CLIENT_URL);
   if (process.env.CLIENT_URLS) {
-    const firstUrl = process.env.CLIENT_URLS.split(',').map((url) => url.trim()).find(Boolean);
+    const firstUrl = process.env.CLIENT_URLS
+      .split(',')
+      .map((url) => normalizeOrigin(url))
+      .find(Boolean);
     if (firstUrl) return firstUrl;
   }
   return null;

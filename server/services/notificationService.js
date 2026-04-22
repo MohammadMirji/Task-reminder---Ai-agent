@@ -2,18 +2,55 @@ const cron = require('node-cron');
 const webpush = require('web-push');
 const Task = require('../models/Task');
 const PushSubscription = require('../models/PushSubscription');
+const { cleanEnvValue } = require('../utils/env');
 
-function startNotificationCron() {
-  if (!process.env.VAPID_EMAIL || !process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+function decodeBase64Url(value) {
+  const cleaned = cleanEnvValue(value);
+  if (!cleaned) return null;
+
+  const padding = '='.repeat((4 - (cleaned.length % 4)) % 4);
+  const normalized = (cleaned + padding).replace(/-/g, '+').replace(/_/g, '/');
+  return Buffer.from(normalized, 'base64');
+}
+
+function getValidatedVapidConfig() {
+  const email = cleanEnvValue(process.env.VAPID_EMAIL);
+  const publicKey = cleanEnvValue(process.env.VAPID_PUBLIC_KEY);
+  const privateKey = cleanEnvValue(process.env.VAPID_PRIVATE_KEY);
+
+  if (!email || !publicKey || !privateKey) {
     console.warn('Push notifications are disabled: VAPID keys/email not configured.');
-    return;
+    return null;
   }
 
-  webpush.setVapidDetails(
-    process.env.VAPID_EMAIL,
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-  );
+  try {
+    const decodedPrivateKey = decodeBase64Url(privateKey);
+    if (!decodedPrivateKey || decodedPrivateKey.length !== 32) {
+      console.warn('Push notifications are disabled: VAPID private key is not a valid 32-byte base64url value.');
+      return null;
+    }
+
+    return { email, publicKey, privateKey };
+  } catch (error) {
+    console.warn(`Push notifications are disabled: ${error.message}`);
+    return null;
+  }
+}
+
+function startNotificationCron() {
+  const vapidConfig = getValidatedVapidConfig();
+  if (!vapidConfig) return false;
+
+  try {
+    webpush.setVapidDetails(
+      vapidConfig.email,
+      vapidConfig.publicKey,
+      vapidConfig.privateKey
+    );
+  } catch (error) {
+    console.warn(`Push notifications are disabled: ${error.message}`);
+    return false;
+  }
 
   cron.schedule('* * * * *', async () => {
     const now = new Date();
@@ -69,6 +106,7 @@ function startNotificationCron() {
   });
 
   console.log('Notification cron job started');
+  return true;
 }
 
 module.exports = { startNotificationCron };

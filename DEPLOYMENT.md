@@ -21,7 +21,11 @@
    - `VAPID_PUBLIC_KEY`
    - `VAPID_PRIVATE_KEY`
    - `VAPID_EMAIL`
-5. Deploy and confirm health endpoint:
+5. Important:
+   - `CLIENT_URL` / `CLIENT_URLS` must contain your exact Vercel app origin, for example `https://task-reminder-ai-agent.vercel.app`
+   - Do not include spaces, quotes, or a trailing path in `CLIENT_URL`, `CLIENT_URLS`, `FRONTEND_URL`, or the VAPID keys
+   - `VAPID_PRIVATE_KEY` must be the raw base64url key and decode to 32 bytes, otherwise push notifications are disabled
+6. Deploy and confirm health endpoint:
    - `https://<railway-domain>/health` returns `{ "ok": true }`.
 
 ## 2) Configure Google OAuth
@@ -46,4 +50,3 @@ In Google Cloud Console OAuth client settings:
 - Ensure your Vercel domain is present in backend env.
 - After changing env vars, trigger a redeploy in both platforms.
 - This project is configured for online environments only (no localhost fallback URLs).
-
