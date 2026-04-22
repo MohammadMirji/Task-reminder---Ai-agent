@@ -31,7 +31,11 @@ app.use(
   })
 );
 app.use(express.json());
-app.use(session({ secret: process.env.JWT_SECRET, resave: false, saveUninitialized: false }));
+const sessionSecret = process.env.JWT_SECRET || 'temporary-dev-secret-change-in-production';
+if (!process.env.JWT_SECRET) {
+  console.warn('JWT_SECRET is not set. Using fallback secret; set JWT_SECRET in Railway variables.');
+}
+app.use(session({ secret: sessionSecret, resave: false, saveUninitialized: false }));
 app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);

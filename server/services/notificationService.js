@@ -3,13 +3,18 @@ const webpush = require('web-push');
 const Task = require('../models/Task');
 const PushSubscription = require('../models/PushSubscription');
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
 function startNotificationCron() {
+  if (!process.env.VAPID_EMAIL || !process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    console.warn('Push notifications are disabled: VAPID keys/email not configured.');
+    return;
+  }
+
+  webpush.setVapidDetails(
+    process.env.VAPID_EMAIL,
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+
   cron.schedule('* * * * *', async () => {
     const now = new Date();
     const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
