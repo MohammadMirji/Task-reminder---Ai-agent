@@ -17,7 +17,7 @@
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
    - `CLIENT_URL`
-   - `CLIENT_URLS` (comma-separated list; include your Vercel URL)
+   - `CLIENT_URLS` (online frontend domains only; comma-separated if multiple)
    - `VAPID_PUBLIC_KEY`
    - `VAPID_PRIVATE_KEY`
    - `VAPID_EMAIL`
@@ -45,4 +45,5 @@ In Google Cloud Console OAuth client settings:
 - `server` CORS accepts origins from `CLIENT_URLS` (or `CLIENT_URL`).
 - Ensure your Vercel domain is present in backend env.
 - After changing env vars, trigger a redeploy in both platforms.
+- This project is configured for online environments only (no localhost fallback URLs).
 

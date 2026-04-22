@@ -12,7 +12,7 @@ function getFrontendUrl() {
     const firstUrl = process.env.CLIENT_URLS.split(',').map((url) => url.trim()).find(Boolean);
     if (firstUrl) return firstUrl;
   }
-  return 'http://localhost:3000';
+  return null;
 }
 
 // Helper: generate JWT
@@ -88,6 +88,11 @@ router.get(
   (req, res) => {
     const token = generateToken(req.user);
     const frontendUrl = getFrontendUrl();
+    if (!frontendUrl) {
+      return res.status(500).json({
+        error: 'FRONTEND_URL is not configured on the server.',
+      });
+    }
     // Send token to frontend via URL param (React will grab it)
     res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
   }

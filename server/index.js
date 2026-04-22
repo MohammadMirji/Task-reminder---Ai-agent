@@ -13,8 +13,11 @@ const notificationRoutes = require('./routes/notifications'); // ← NEW
 
 const app = express();
 
-const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || '')
-  .split(',')
+const allowedOrigins = [
+  ...(process.env.CLIENT_URLS || '').split(','),
+  process.env.CLIENT_URL || '',
+  process.env.FRONTEND_URL || '',
+]
   .map((origin) => origin.trim())
   .filter(Boolean);
 
@@ -25,6 +28,7 @@ app.use(
       // Allow non-browser clients and curl requests with no Origin header
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn(`CORS blocked origin: ${origin}`);
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API = process.env.REACT_APP_API_URL;
 const VAPID_PUBLIC_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY;
 
 // Convert VAPID public key to the format browsers expect
@@ -30,6 +30,11 @@ export function useNotifications() { // ← no token parameter
 
 const subscribe = async (silent = false) => {
   try {
+    if (!API) {
+      if (!silent) alert('API is not configured.');
+      return;
+    }
+
     if (!VAPID_PUBLIC_KEY) {
       if (!silent) alert('Push notifications are not configured.');
       return;
@@ -63,6 +68,8 @@ const subscribe = async (silent = false) => {
 
   const unsubscribe = async () => {
     try {
+      if (!API) return;
+
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
       if (sub) await sub.unsubscribe();

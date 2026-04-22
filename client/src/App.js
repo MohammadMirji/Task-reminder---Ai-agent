@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNotifications } from "./useNotifications";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const API = process.env.REACT_APP_API_URL;
 
 // ─── Axios helper: attach JWT to every request ────────────────────────────────
 const authAxios = () => {
@@ -19,6 +19,19 @@ function AuthPage({ onLogin }) {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if (!API) {
+    return (
+      <div style={styles.authContainer}>
+        <div style={styles.authBox}>
+          <h1 style={{ textAlign: "center", marginBottom: 8 }}>AI Task Manager</h1>
+          <p style={{ color: "red", textAlign: "center" }}>
+            Frontend is not configured. Set REACT_APP_API_URL in Vercel.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async () => {
     setLoading(true);
